@@ -1,0 +1,34 @@
+{
+  "note": "Sample prices, made up for the demo. Put your own shop's here.",
+  "currency": "USD",
+  "paint": { "respray": [4500, 9000] },
+  "wrap": {
+    "full": [3200, 5200],
+    "roof": [350, 650],
+    "hood": [300, 550],
+    "mirrors": [120, 240],
+    "perPanel": [180, 320],
+    "finishFactor": { "gloss": 1, "satin": 1, "matte": 1.05, "chrome": 1.7, "colorshift": 1.35, "carbon": 1.25 }
+  },
+  "stripes": [450, 900],
+  "ppf": {
+    "partial": [900, 1500],
+    "front": [1800, 2600],
+    "track": [2600, 3600],
+    "full": [5500, 8000],
+    "perPanel": [220, 450],
+    "matteFactor": 1.15
+  },
+  "wheels": {
+    "17": [1100, 1800],
+    "18": [1300, 2200],
+    "19": [1600, 2700],
+    "20": [1900, 3200],
+    "21": [2300, 3900],
+    "22": [2600, 4600],
+    "finishFactor": { "silver": 1, "gunmetal": 1, "black": 1, "bronze": 1.05, "chrome": 1.3, "custom": 1.15 }
+  },
+  "calipers": [400, 750],
+  "suspension": { "springs": [450, 950], "coilovers": [1400, 3200] },
+  "spacers": [120, 320]
+}

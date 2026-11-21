@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>carlab</title>
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script type="module" src="/static/js/app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <span class="wordmark">carlab</span>
+    <p class="mono" id="car-title">Sport sedan</p>
+    <p class="mono mono--muted" id="build-state"></p>
+  </header>
+
+  <main class="studio">
+    <section class="stage" aria-label="The car">
+      <canvas id="view" aria-label="3D view of the car. Drag to turn it, scroll to zoom."></canvas>
+      <div class="views" role="group" aria-label="Views" id="views"></div>
+      <div class="stage-tools">
+        <label class="toggle"><input type="checkbox" id="show-film"> Show film</label>
+        <button type="button" class="ghost" id="save-picture">Save picture</button>
+      </div>
+      <p class="pick-hint" id="pick-hint" hidden></p>
+      <p class="loading mono" id="loading">Building the car…</p>
+    </section>
+
+    <aside class="panel">
+      <nav class="tabs" role="tablist" aria-label="What to change">
+        <button type="button" role="tab" data-tab="car" aria-selected="true">Car</button>
+        <button type="button" role="tab" data-tab="paint" aria-selected="false">Paint</button>
+        <button type="button" role="tab" data-tab="wrap" aria-selected="false">Wrap</button>
+        <button type="button" role="tab" data-tab="film" aria-selected="false">Film</button>
+        <button type="button" role="tab" data-tab="wheels" aria-selected="false">Wheels</button>
+        <button type="button" role="tab" data-tab="build" aria-selected="false">Build</button>
+      </nav>
+
+      <!-- The car: from a listing link or photos, traced into a shape. -->
+      <section class="pane" data-pane="car" role="tabpanel">
+        <form class="row" id="listing-form">
+          <label class="field grow"><span>Listing link</span><input type="url" id="listing-url" placeholder="https://… a dealer or marketplace listing" autocomplete="off"></label>
+          <button type="submit" id="listing-read">Read</button>
+        </form>
+        <p class="note" id="samples">No link handy? Try one of ours: </p>
+        <div class="row">
+          <label class="file-button">Add photos<input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" multiple></label>
+          <p class="note">A photo of the car's side gives its shape; one from the front gives its width.</p>
+        </div>
+        <p class="status" id="car-status" role="status"></p>
+
+        <div class="listing" id="listing" hidden>
+          <div class="facts" id="facts"></div>
+        </div>
+        <div class="strip" id="photos" aria-label="Photos"></div>
+
+        <div class="tracer" id="tracer" hidden>
+          <div class="tracer-head">
+            <p class="label">Outline</p>
+            <div class="row tight">
+              <button type="button" class="ghost" id="trace-flip" title="Swap which end is the front">Swap front and back</button>
+              <button type="button" class="ghost" id="trace-reset">Find again</button>
+            </div>
+          </div>
+          <canvas id="trace-canvas" aria-label="The photo with the car's outline. Drag the points, lines and wheels to fit."></canvas>
+          <p class="note">Drag the dots along the top to the car's outline, the lines to where the windshield, roof and rear glass start and end, and the wheels onto the wheels.</p>
+          <div class="row">
+            <label class="field"><span>Length (m)</span><input type="number" id="trace-length" min="2.5" max="6.5" step="0.01" value="4.70"></label>
+            <label class="field"><span>Width (m)</span><input type="number" id="trace-width" min="1.4" max="2.3" step="0.01" value="1.83"></label>
+            <button type="button" class="primary" id="trace-use">Build this shape</button>
+          </div>
+          <p class="note" id="length-note"></p>
+        </div>
+
+        <fieldset class="group">
+          <legend>About the car</legend>
+          <div class="row">
+            <label class="field small"><span>Year</span><input id="car-year" inputmode="numeric" maxlength="4"></label>
+            <label class="field"><span>Make</span><input id="car-make" maxlength="40"></label>
+            <label class="field"><span>Model</span><input id="car-model" maxlength="60"></label>
+            <label class="field"><span>Trim</span><input id="car-trim" maxlength="60"></label>
+          </div>
+        </fieldset>
+        <button type="button" class="ghost" id="default-car">Back to the built-in sedan</button>
+      </section>
+
+      <section class="pane" data-pane="paint" role="tabpanel" hidden>
+        <p class="label">Color</p>
+        <div class="swatches" id="paint-swatches"></div>
+        <label class="field color"><span>Any color</span><input type="color" id="paint-color"></label>
+        <p class="note" id="factory-note" hidden></p>
+        <p class="label">Finish</p>
+        <div class="chips" id="paint-finish"></div>
+      </section>
+
+      <section class="pane" data-pane="wrap" role="tabpanel" hidden>
+        <p class="label">Where</p>
+        <div class="chips" id="wrap-zone"></div>
+        <button type="button" class="ghost pick" data-pick="wrap">Pick panels on the car</button>
+        <p class="label">Color</p>
+        <div class="swatches" id="wrap-swatches"></div>
+        <label class="field color"><span>Any color</span><input type="color" id="wrap-color"></label>
+        <p class="label">Finish</p>
+        <div class="chips" id="wrap-finish"></div>
+        <fieldset class="group">
+          <legend><label class="toggle"><input type="checkbox" id="stripes-on"> Stripes</label></legend>
+          <div class="row">
+            <label class="field color"><span>Color</span><input type="color" id="stripes-color"></label>
+            <label class="field"><span>Each stripe <output id="stripes-width-out"></output></span><input type="range" id="stripes-width" min="0.05" max="0.4" step="0.01"></label>
+            <label class="field"><span>Gap <output id="stripes-gap-out"></output></span><input type="range" id="stripes-gap" min="0" max="0.3" step="0.01"></label>
+          </div>
+        </fieldset>
+      </section>
+
+      <section class="pane" data-pane="film" role="tabpanel" hidden>
+        <p class="note">Clear paint protection film over the paint (or wrap): it takes stone chips and scratches instead of the paint.</p>
+        <p class="label">Coverage</p>
+        <div class="options" id="ppf-coverage"></div>
+        <button type="button" class="ghost pick" data-pick="ppf">Pick panels on the car</button>
+        <p class="label">Finish</p>
+        <div class="chips" id="ppf-finish"></div>
+        <label class="toggle"><input type="checkbox" id="show-film-2"> Show where the film goes</label>
+      </section>
+
+      <section class="pane" data-pane="wheels" role="tabpanel" hidden>
+        <p class="label">Style</p>
+        <div class="chips" id="wheel-style"></div>
+        <p class="label">Size <span class="mono mono--muted" id="sidewall"></span></p>
+        <div class="chips" id="wheel-size"></div>
+        <p class="label">Finish</p>
+        <div class="chips" id="wheel-finish"></div>
+        <label class="field color" id="wheel-color-field" hidden><span>Wheel color</span><input type="color" id="wheel-color"></label>
+        <p class="label">Calipers</p>
+        <div class="swatches" id="caliper-swatches"></div>
+        <label class="field"><span>Lower it <output id="lowering-out"></output></span><input type="range" id="lowering" min="0" max="60" step="5"></label>
+        <label class="field"><span>Wheel spacers <output id="spacer-out"></output></span><input type="range" id="spacer" min="0" max="25" step="5"></label>
+      </section>
+
+      <section class="pane" data-pane="build" role="tabpanel" hidden>
+        <form class="row" id="save-form">
+          <label class="field grow"><span>Name</span><input id="build-name" maxlength="80" placeholder="Weekend build"></label>
+          <button type="submit" class="primary" id="save-build">Save</button>
+          <button type="button" id="save-new" hidden>Save as new</button>
+        </form>
+        <p class="status" id="save-status" role="status"></p>
+        <p class="label">Estimate</p>
+        <table class="sheet" id="sheet"></table>
+        <p class="note" id="sheet-note"></p>
+        <p class="label">Saved builds</p>
+        <ul class="saved" id="saved"></ul>
+      </section>
+    </aside>
+  </main>
+</body>
+</html>
